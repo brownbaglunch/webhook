@@ -90,12 +90,11 @@ function printError(error) {
 }
 
 function processEvent(request, response) {
-	var data;
 	var aliases;
 	var now = moment();
 	var newIndexName = configuration.alias + now.format('YYYYMMDDHHmmss');
 
-	console.log("starting");
+	console.log("*** starting");
 
 	// We save the exisiting aliases
 	esClient.indices.getAlias({name: configuration.alias, ignore: 404}).then(function(response) {
@@ -154,6 +153,9 @@ function processEvent(request, response) {
 											index: indices
 										}).then(function (response) {
 											console.log("old indices removed", response);
+										  response.send("imported " + bblfrData.cities.length +
+										  	" cities and " + bblfrData.baggers.length + " baggers...");
+									  	console.log("*** done");
 										}, printError);										
 									}
 								}, printError);
@@ -181,9 +183,6 @@ function processEvent(request, response) {
 					});
 				}, printError);
 			}, printError);
-
-
-  response.send(data);
 }
 
 var app = express();
