@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var express = require('express');
 var https = require('https');
 var elasticsearch = require('elasticsearch');
