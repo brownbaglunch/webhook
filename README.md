@@ -74,3 +74,43 @@ To monitor and restart your application automatically, run:
 nodemon app.js
 ```
 
+## Deployment
+
+When running in production, you can use [forever](https://github.com/nodejitsu/forever) to run it as a service.
+
+```sh
+sudo npm -g install forever
+sudo npm install -g forever-service
+git clone https://github.com/brownbaglunch/webhook.git
+cd webhook
+npm install
+# This will install webhook as a service
+sudo forever-service install -e "SERVER_PORT=3000 SERVER_HOST='0.0.0.0'" webhook
+```
+
+And start it:
+
+```sh
+sudo service webhook start
+```
+
+Or stop it:
+
+```sh
+sudo service webhook stop
+```
+
+To check if it's running:
+
+```sh
+sudo service webhook status
+```
+
+You can also check logs:
+
+```sh
+tail -f /var/log/webhook.log
+```
+
+
+
