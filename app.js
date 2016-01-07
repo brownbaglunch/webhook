@@ -90,6 +90,8 @@ function printError(error) {
 }
 
 function processEvent(request, response) {
+	var numCities;
+	var numBaggers;
 	var aliases;
 	var now = moment();
 	var newIndexName = configuration.alias + now.format('YYYYMMDDHHmmss');
@@ -153,8 +155,6 @@ function processEvent(request, response) {
 											index: indices
 										}).then(function (response) {
 											console.log("old indices removed", response);
-										  response.send("imported " + bblfrData.cities.length +
-										  	" cities and " + bblfrData.baggers.length + " baggers...");
 									  	console.log("*** done");
 										}, printError);										
 									}
@@ -183,6 +183,7 @@ function processEvent(request, response) {
 					});
 				}, printError);
 			}, printError);
+	  response.send("imported cities and baggers...\n");
 }
 
 var app = express();
