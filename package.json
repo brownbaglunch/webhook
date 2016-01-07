@@ -1,0 +1,30 @@
+{
+  "name": "github-webhook",
+  "version": "1.0.0",
+  "description": "Webhook for brownbaglunch data repo",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brownbaglunch/webhook.git"
+  },
+  "keywords": [
+    "bbl",
+    "brownbaglunch"
+  ],
+  "author": "David Pilato",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/brownbaglunch/webhook/issues"
+  },
+  "homepage": "https://github.com/brownbaglunch/webhook#readme",
+  "dependencies": {
+    "async": ">= 1.5.1",
+    "elasticsearch": ">= 10.0.0",
+    "express": "^4.13.3",
+    "moment": ">= 2.11.0",
+    "sync-request": ">= 2.1.0"
+  }
+}

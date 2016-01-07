@@ -16,6 +16,32 @@ Data are available in elasticsearch:
 * [baggers](http://localhost:9200/bblfr/baggers/_search?pretty)
 * [cities](http://localhost:9200/bblfr/cities/_search?pretty)
 
+## Run
+
+To run it, you need to have Node JS installed.
+
+```sh
+git clone https://github.com/brownbaglunch/webhook.git
+cd webhook
+npm install
+node app.js 
+```
+
+It should says:
+
+```
+Brownbaglunch webhook app listening at http://:::3000
+elasticsearch cluster is running!
+```
+
+Then just call http://localhost:3000:
+
+```sh
+curl localhost:3000
+```
+
+## Configuration
+
 If you want to push to another cluster, you need to create a local `config.json` file as follow:
 
 ```json
@@ -24,5 +50,19 @@ If you want to push to another cluster, you need to create a local `config.json`
 	"target": "https://username:password@yourcluster.found.io:9243/",
 	"alias": "bblfr"
 }
+```
+
+## Development
+
+NodeMon is recommended when you want to code:
+
+```sh
+npm install nodemon -g
+```
+
+To monitor and restart your application automatically, run:
+
+```sh
+nodemon app.js
 ```
 
