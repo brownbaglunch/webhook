@@ -52,6 +52,14 @@ If you want to push to another cluster, you need to create a local `config.json`
 }
 ```
 
+If you want to change network settings, use `SERVER_HOST` and `SERVER_PORT` system variables:
+
+```sh
+SERVER_PORT=9000 SERVER_HOST="localhost" node app.js
+```
+
+By default, it will listen on `0.0.0.0`, port `3000`.
+
 ## Development
 
 NodeMon is recommended when you want to code:

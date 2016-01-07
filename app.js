@@ -197,7 +197,10 @@ app.post('/', function (request, response) {
 	processEvent(request, response);
 });
 
-var server = app.listen(3000, function () {
+var port = process.env.SERVER_PORT || 3000;
+var host = process.env.SERVER_HOST || null;
+
+var server = app.listen(port, host, function () {
   var host = server.address().address;
   var port = server.address().port;
   console.log('Brownbaglunch webhook app listening at http://%s:%s', host, port);
