@@ -191,7 +191,7 @@ app.get('/', function (request, response) {
 	processEvent(request, response);
 });
 
-app.post('/', function (req, response) {
+app.post('/', function (request, response) {
 	processEvent(request, response);
 });
 
