@@ -5,6 +5,7 @@ var https = require('https');
 var elasticsearch = require('elasticsearch');
 var moment = require('moment');
 var fs = require('fs');
+var crypto = require('crypto');
 
 // Parameters
 var configurationFile = 'config.json';
@@ -12,7 +13,8 @@ var configurationFile = 'config.json';
 var configuration = {
 	"source": "https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js",
 	"target": "http://localhost:9200",
-	"alias": "bblfr"
+	"alias": "bblfr",
+	"token": null
 };
 
 /*
@@ -20,7 +22,8 @@ Configuration file needs to set:
 {
 	"source": "https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js",
 	"target": "https://username:password@yourcluster.found.io:9243/",
-	"alias": "bblfr"
+	"alias": "bblfr",
+	"token": "GITHUB_WEBHOOK_SECRET_TOKEN"
 }
 */
 
@@ -89,7 +92,7 @@ function printError(error) {
 	console.error(error);
 }
 
-function processEvent(request, response) {
+function processEvent() {
 	var numCities;
 	var numBaggers;
 	var aliases;
@@ -183,18 +186,47 @@ function processEvent(request, response) {
 					});
 				}, printError);
 			}, printError);
-	  response.send("imported cities and baggers...\n");
 }
 
 var app = express();
+
+// This method helps to generate a String content based on the stream we get
+app.use (function(req, res, next) {
+		data = '';
+    req.setEncoding('utf8');
+
+    req.on('data', function(chunk) { 
+	    data += chunk.toString();
+    });
+
+    req.on('end', function() {
+	    	req.body = data;
+	      next();
+    });
+});
 
 // Just for test purpose, we only use POST in production
 app.get('/', function (request, response) {
 	processEvent(request, response);
 });
 
+function checkHash(text, signature) {
+		var calculatedSignature = "sha1=" + crypto.createHmac('sha1', configuration.token).update(text).digest('hex');
+		return signature === calculatedSignature;
+}
+
 app.post('/', function (request, response) {
-	processEvent(request, response);
+	if (configuration.token != null) {
+		if (checkHash(request.body, request.get("X-Hub-Signature"))) {
+			processEvent();
+		  response.send("imported cities and baggers...\n");
+		} else {
+			response.send("wrong token\n");
+		}
+	} else {
+			processEvent();
+		  response.send("WARN: no token provided. DEV MODE. imported cities and baggers...\n");
+	}
 });
 
 var port = process.env.SERVER_PORT || 3000;

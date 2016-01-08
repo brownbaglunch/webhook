@@ -34,10 +34,10 @@ Brownbaglunch webhook app listening at http://:::3000
 elasticsearch cluster is running!
 ```
 
-Then just call http://localhost:3000:
+Then just POST to http://localhost:3000:
 
 ```sh
-curl localhost:3000
+curl -XPOST localhost:3000
 ```
 
 ## Configuration
@@ -48,9 +48,13 @@ If you want to push to another cluster, you need to create a local `config.json`
 {
 	"source": "https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js",
 	"target": "https://username:password@yourcluster.found.io:9243/",
-	"alias": "bblfr"
+	"alias": "bblfr",
+	"token": "hhdquiHdsuqiudshqhiudhuebefbbcbzbczib"
 }
 ```
+
+`token` value is the one you defined in [Github Hooks](https://github.com/brownbaglunch/bblfr_data/settings/hooks/).
+It can be `null` (default) in development mode.
 
 If you want to change network settings, use `SERVER_HOST` and `SERVER_PORT` system variables:
 
