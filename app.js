@@ -198,8 +198,13 @@ app.use (function(req, res, next) {
 
 // Just for test purpose, we only use POST in production
 app.get('/', function (request, response) {
-	processEvent(request, response);
-  response.send("GET /. DEV MODE. imported cities and baggers...\n");
+	if ((process.env.NODE_ENV || 'development') === 'development') {
+		processEvent(request, response);
+	  response.send("GET /. DEV MODE. imported cities and baggers...\n");
+	} else {
+		// If not in DEV mode, we don't allow GET / request
+	  response.send("PROD MODE. GET / is forbidden...\n");
+	}
 });
 
 function checkHash(text, signature) {
