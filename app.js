@@ -4,37 +4,27 @@ var express = require('express');
 var https = require('https');
 var elasticsearch = require('elasticsearch');
 var moment = require('moment');
-var fs = require('fs');
 var crypto = require('crypto');
 
-// Parameters
-var configurationFile = 'config.json';
-
-var configuration = {
-	"source": "https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js",
-	"target": "http://localhost:9200",
-	"alias": "bblfr",
-	"token": null
-};
-
+// Load .env configuration file
+// If the Node environment is not explicitly set,
+// or if it is set to "development", load in environment vars.
 /*
-Configuration file needs to set:
-{
-	"source": "https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js",
-	"target": "https://username:password@yourcluster.found.io:9243/",
-	"alias": "bblfr",
-	"token": "GITHUB_WEBHOOK_SECRET_TOKEN"
-}
-*/
+Configuration file needs to set (.env) if you want to change local default values:
+SOURCE=https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js
+TARGET=https://username:password@yourcluster.found.io:9243/
+ALIAS=bblfr
+TOKEN=GITHUB_WEBHOOK_SECRET_TOKEN
+PORT=5000
 
-try {
-	configuration = JSON.parse(fs.readFileSync(configurationFile));
-} catch (e) {
-  console.log("configuration file", configurationFile, 'not found. Using defaults.');
+If you are running on Heroku, check the README file and use heroku config:set 
+*/
+if ((process.env.NODE_ENV || 'development') === 'development') {
+	require('dotenv').load();
 }
 
 var esClient = new elasticsearch.Client({
-    host: configuration.target
+    host: process.env.TARGET
 });
 
 // First checks that elasticsearch is running. Fails otherwise
@@ -97,12 +87,12 @@ function processEvent() {
 	var numBaggers;
 	var aliases;
 	var now = moment();
-	var newIndexName = configuration.alias + now.format('YYYYMMDDHHmmss');
+	var newIndexName = process.env.ALIAS + now.format('YYYYMMDDHHmmss');
 
 	console.log("*** starting");
 
 	// We save the exisiting aliases
-	esClient.indices.getAlias({name: configuration.alias, ignore: 404}).then(function(response) {
+	esClient.indices.getAlias({name: process.env.ALIAS, ignore: 404}).then(function(response) {
 			console.log("get aliases", response);
 			if (response.status == 404) {
 				aliases = {}
@@ -113,7 +103,7 @@ function processEvent() {
 			esClient.indices.create({index: newIndexName}).then(function(response) {
 					console.log("- index", newIndexName, ":", response);
 					// We need to fetch data from source
-					readDataFromGithub(configuration.source, function(script) {
+					readDataFromGithub(process.env.SOURCE, function(script) {
 						// Remove the "var data = " part and 
 						script = script.replace("var data = ", "").replace(/;([^;]*)$/, '');
 						bblfrData = JSON.parse(script);
@@ -129,15 +119,15 @@ function processEvent() {
 							importData(newIndexName, bblfrData.baggers, "baggers", function() {
 								console.log("- done with baggers");
 
-								console.log("- adding alias", configuration.alias, "on", newIndexName);
+								console.log("- adding alias", process.env.ALIAS, "on", newIndexName);
 								// We now remove old aliases and switch to the new one
 								var actions = [
-									{ add:    { index: newIndexName, alias: configuration.alias } }
+									{ add:    { index: newIndexName, alias: process.env.ALIAS } }
 								];
 
 								for (indexname in aliases) {
-									console.log("- removing alias", configuration.alias, "on", indexname);
-									actions.push({ remove: { index: indexname, alias: configuration.alias } });
+									console.log("- removing alias", process.env.ALIAS, "on", indexname);
+									actions.push({ remove: { index: indexname, alias: process.env.ALIAS } });
 								}
 
 								esClient.indices.updateAliases({
@@ -145,7 +135,7 @@ function processEvent() {
 								    actions: actions
 								  }
 								}).then(function (response) {
-									console.log("- alias", configuration.alias, ":", response);
+									console.log("- alias", process.env.ALIAS, ":", response);
 									// We can remove old indices
 									var indices = [];
 									for (indexname in aliases) {
@@ -189,6 +179,7 @@ function processEvent() {
 }
 
 var app = express();
+app.set('port', (process.env.PORT || 5000));
 
 // This method helps to generate a String content based on the stream we get
 app.use (function(req, res, next) {
@@ -208,15 +199,16 @@ app.use (function(req, res, next) {
 // Just for test purpose, we only use POST in production
 app.get('/', function (request, response) {
 	processEvent(request, response);
+  response.send("GET /. DEV MODE. imported cities and baggers...\n");
 });
 
 function checkHash(text, signature) {
-		var calculatedSignature = "sha1=" + crypto.createHmac('sha1', configuration.token).update(text).digest('hex');
+		var calculatedSignature = "sha1=" + crypto.createHmac('sha1', process.env.TOKEN).update(text).digest('hex');
 		return signature === calculatedSignature;
 }
 
 app.post('/', function (request, response) {
-	if (configuration.token != null) {
+	if (process.env.TOKEN != undefined) {
 		if (checkHash(request.body, request.get("X-Hub-Signature"))) {
 			processEvent();
 		  response.send("imported cities and baggers...\n");
@@ -229,10 +221,7 @@ app.post('/', function (request, response) {
 	}
 });
 
-var port = process.env.SERVER_PORT || 3000;
-var host = process.env.SERVER_HOST || null;
-
-var server = app.listen(port, host, function () {
+var server = app.listen(app.get('port'), function () {
   var host = server.address().address;
   var port = server.address().port;
   console.log('Brownbaglunch webhook app listening at http://%s:%s', host, port);

@@ -30,39 +30,38 @@ node app.js
 It should says:
 
 ```
-Brownbaglunch webhook app listening at http://:::3000
+Brownbaglunch webhook app listening at http://:::5000
 elasticsearch cluster is running!
 ```
 
-Then just POST to http://localhost:3000:
+Then just POST to http://localhost:5000:
 
 ```sh
-curl -XPOST localhost:3000
+curl -XPOST localhost:5000
 ```
 
 ## Configuration
 
-If you want to push to another cluster, you need to create a local `config.json` file as follow:
+If you want to push to another cluster, you need to create a local `.env` file as follow:
 
-```json
-{
-	"source": "https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js",
-	"target": "https://username:password@yourcluster.found.io:9243/",
-	"alias": "bblfr",
-	"token": "hhdquiHdsuqiudshqhiudhuebefbbcbzbczib"
-}
+```properties
+SOURCE=https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js
+TARGET=https://username:password@yourcluster.found.io:9243/
+ALIAS=bblfr
+TOKEN=hhdquiHdsuqiudshqhiudhuebefbbcbzbczib
+PORT=5000
 ```
 
-`token` value is the one you defined in [Github Hooks](https://github.com/brownbaglunch/bblfr_data/settings/hooks/).
+`TOKEN` value is the one you defined in [Github Hooks](https://github.com/brownbaglunch/bblfr_data/settings/hooks/).
 It can be `null` (default) in development mode.
 
-If you want to change network settings, use `SERVER_HOST` and `SERVER_PORT` system variables:
+If you want to change network settings, change `PORT` system variables or change it in `.env` file:
 
 ```sh
-SERVER_PORT=9000 SERVER_HOST="localhost" node app.js
+PORT=9000 node app.js
 ```
 
-By default, it will listen on `0.0.0.0`, port `3000`.
+By default, it will listen on `0.0.0.0`, port `5000`.
 
 ## Development
 
@@ -80,6 +79,47 @@ nodemon app.js
 
 ## Deployment
 
+### Heroku
+
+You need to use the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-command):
+
+```sh
+brew install heroku
+```
+
+Log in to Heroku:
+
+```sh
+heroku login
+```
+
+To deploy on Heroku, create the Heroku application. It will basically create an Heroku application and 
+add an "heroku" remote to your local git repository:
+
+```sh
+heroku create brownbaglunch-webhook
+```
+
+To deploy, run:
+
+```sh
+git add .
+git push heroku master
+```
+
+Make sure you define needed system properties:
+
+```sh
+heroku config:set SOURCE=https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js
+heroku config:set TARGET=http://bblfr:password@localhost:9200
+heroku config:set ALIAS=bblfr
+heroku config:set TOKEN=12345678
+heroku config:set PORT=5000
+```
+
+
+### DIY server
+
 When running in production, you can use [forever](https://github.com/nodejitsu/forever) to run it as a service.
 
 ```sh
@@ -89,7 +129,7 @@ git clone https://github.com/brownbaglunch/webhook.git
 cd webhook
 npm install
 # This will install webhook as a service
-sudo forever-service install -e "SERVER_PORT=3000 SERVER_HOST='0.0.0.0'" webhook
+sudo forever-service install -e "PORT=5000" webhook
 ```
 
 And start it:
