@@ -79,6 +79,35 @@ nodemon app.js
 
 ## Deployment
 
+### Clevercloud
+
+Connect to your [Clever-cloud console](https://console.clever-cloud.com/).
+Create your NodeJS application and define your variables:
+
+```sh
+SOURCE=https://raw.githubusercontent.com/brownbaglunch/bblfr_data/gh-pages/baggers.js
+TARGET=http://bblfr:password@localhost:9200
+ALIAS=bblfr
+TOKEN=12345678
+PORT=8080
+```
+
+Note that `PORT` **must be** `8080`.
+
+Add clever as a git remote repository (change `ID` below):
+
+```ssh
+git remote add clever git+ssh://git@push.par.clever-cloud.com/app_ID.git
+```
+
+Deploy!
+
+```sh
+git push -u clever master
+```
+
+Et voilà!
+
 ### Heroku
 
 You need to use the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-command):
