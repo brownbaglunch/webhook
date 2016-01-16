@@ -70,6 +70,11 @@ function importData(index, data, name, callback, rewriter) {
 			bulk.push({ index:  { _index: index, _type: name } }, parsedData);
 		} );
 
+		sendBulk(bulk, name, callback);
+}
+
+function sendBulk(bulk, name, callback) {
+	  console.log('Sending bulk for', name, 'with', bulk.length, 'operations');
   	esClient.bulk({
 		  body: bulk
 		}).then(function (response) {
@@ -116,6 +121,24 @@ function processEvent() {
 
 						importData(newIndexName, bblfrData.cities, "cities", function() {
 							console.log("- done with cities");
+
+					    bulk = [];
+
+							bblfrData.baggers.forEach( function(obj) { 
+								obj.sessions.forEach(function(session) {
+									bulk.push({ index:  { _index: newIndexName, _type: 'talks' } });
+									bulk.push({
+										"title": session.title,
+										"abstract": session.summary,
+										"speaker": obj.name
+									});
+								});
+							});
+
+							sendBulk(bulk, 'talks', function() {
+								console.log("- done with talks");
+							});
+
 							importData(newIndexName, bblfrData.baggers, "baggers", function() {
 								console.log("- done with baggers");
 
@@ -171,7 +194,7 @@ function processEvent() {
 								obj.cities = newCities;
 
 								return obj;
-							});				
+							});			
 						});
 					});
 				}, printError);
